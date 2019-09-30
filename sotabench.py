@@ -69,10 +69,10 @@ def check(args):
         raise Exception('architecture not supported yet'.format(args.arch))
 
 
-def main(config, weights_url='https://github.com/deepparrot/semseg/releases/download/0.1/pspnet50-ade20k.pth', 
+def main(config_name, weights_url='https://github.com/deepparrot/semseg/releases/download/0.1/pspnet50-ade20k.pth', 
         weights_name='pspnet50-ade20k.pth'):
     
-    args = config.load_cfg_from_cfg_file(config)
+    args = config.load_cfg_from_cfg_file(config_name)
     check(args)
     print(args.data_root)
     print(args.split)
@@ -287,4 +287,4 @@ def cal_acc(data_list, pred_folder, classes, names):
 
 
 if __name__ == '__main__':
-    main(config='config/ade20k/ade20k_pspnet50.yaml')
+    main(config_name='config/ade20k/ade20k_pspnet50.yaml')
