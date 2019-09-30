@@ -1,0 +1,5 @@
+torch
+scipy
+PIL
+sotabencheval
+opencv-python
