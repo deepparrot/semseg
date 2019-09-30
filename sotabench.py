@@ -15,6 +15,12 @@ import torch.utils.data
 from util import dataset, transform, config
 from util.util import intersectionAndUnion, AverageMeter, check_makedirs, colorize
 
+from google_drive_downloader import GoogleDriveDownloader as gdd
+
+gdd.download_file_from_google_drive(file_id='1ICYyknOg9wC4FNRwrOlLublLA2vhZEVC',
+                                    dest_path='./data/vision/ade20k/validation.txt',
+                                    unzip=True)
+
 cv2.ocl.setUseOpenCL(False)
 
 # Extract val2017 zip
@@ -74,8 +80,7 @@ def main(config_name, weights_url='https://github.com/deepparrot/semseg/releases
     
     args = config.load_cfg_from_cfg_file(config_name)
     check(args)
-    print(args.data_root)
-    print(args.split)
+
     logger = get_logger()
     os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(str(x) for x in args.test_gpu)
     logger.info(args)
@@ -91,9 +96,11 @@ def main(config_name, weights_url='https://github.com/deepparrot/semseg/releases
     gray_folder = os.path.join(args.save_folder, 'gray')
     color_folder = os.path.join(args.save_folder, 'color')
 
-    print(args.data_root)
     args.data_root = './.data/vision/ade20k'
-    
+    args.val_list = './.data/vision/ade20k/validation.txt'
+
+    print(args.data_root)
+
     test_transform = transform.Compose([transform.ToTensor()])
     test_data = dataset.SemData(split=args.split, data_root=args.data_root, data_list=args.test_list, transform=test_transform)
     index_start = args.index_start
