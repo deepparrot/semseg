@@ -41,15 +41,7 @@ def get_parser():
     return cfg
 
 
-def get_logger():
-    logger_name = "main-logger"
-    logger = logging.getLogger(logger_name)
-    logger.setLevel(logging.INFO)
-    handler = logging.StreamHandler()
-    fmt = "[%(asctime)s %(levelname)s %(filename)s line %(lineno)d %(process)d] %(message)s"
-    handler.setFormatter(logging.Formatter(fmt))
-    logger.addHandler(handler)
-    return logger
+
 
 
 def check(args):
@@ -82,11 +74,7 @@ def main(config_name, weights_url='https://github.com/deepparrot/semseg/releases
     args = config.load_cfg_from_cfg_file(config_name)
     check(args)
 
-    logger = get_logger()
     os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(str(x) for x in args.test_gpu)
-    logger.info(args)
-    logger.info("=> creating model ...")
-    logger.info("Classes: {}".format(args.classes))
 
     value_scale = 255
     mean = [0.485, 0.456, 0.406]
@@ -125,17 +113,14 @@ def main(config_name, weights_url='https://github.com/deepparrot/semseg/releases
                            shrink_factor=args.shrink_factor, mask_h=args.mask_h, mask_w=args.mask_w,
                            normalization_factor=args.normalization_factor, psa_softmax=args.psa_softmax,
                            pretrained=False)
-        logger.info(model)
         model = torch.nn.DataParallel(model).cuda()
         cudnn.benchmark = True
         
         local_checkpoint, _ = urllib.request.urlretrieve(weights_url, weights_name)
         
         if os.path.isfile(local_checkpoint):
-            logger.info("=> loading checkpoint '{}'".format(local_checkpoint))
             checkpoint = torch.load(local_checkpoint)
             model.load_state_dict(checkpoint['state_dict'], strict=False)
-            logger.info("=> loaded checkpoint '{}'".format(local_checkpoint))
         else:
             raise RuntimeError("=> no checkpoint found at '{}'".format(local_checkpoint))
         test(test_loader, test_data.data_list, model, args.classes, mean, std, args.base_size, args.test_h, args.test_w, args.scales, gray_folder, color_folder, colors)
@@ -203,7 +188,6 @@ def scale_process(model, image, classes, crop_h, crop_w, h, w, mean, std=None, s
 
 
 def test(test_loader, data_list, model, classes, mean, std, base_size, crop_h, crop_w, scales, gray_folder, color_folder, colors):
-    logger.info('>>>>>>>>>>>>>>>> Start Evaluation >>>>>>>>>>>>>>>>')
     data_time = AverageMeter()
     batch_time = AverageMeter()
     model.eval()
@@ -228,12 +212,7 @@ def test(test_loader, data_list, model, classes, mean, std, base_size, crop_h, c
         prediction = np.argmax(prediction, axis=2)
         batch_time.update(time.time() - end)
         end = time.time()
-        if ((i + 1) % 10 == 0) or (i + 1 == len(test_loader)):
-            logger.info('Test: [{}/{}] '
-                        'Data {data_time.val:.3f} ({data_time.avg:.3f}) '
-                        'Batch {batch_time.val:.3f} ({batch_time.avg:.3f}).'.format(i + 1, len(test_loader),
-                                                                                    data_time=data_time,
-                                                                                    batch_time=batch_time))
+
         check_makedirs(gray_folder)
         check_makedirs(color_folder)
         gray = np.uint8(prediction)
@@ -244,7 +223,6 @@ def test(test_loader, data_list, model, classes, mean, std, base_size, crop_h, c
         color_path = os.path.join(color_folder, image_name + '.png')
         cv2.imwrite(gray_path, gray)
         color.save(color_path)
-    logger.info('<<<<<<<<<<<<<<<<< End Evaluation <<<<<<<<<<<<<<<<<')
 
 
 def evalintersectionAndUnion(output, target, K, ignore_index=255, evaluator=None):
@@ -278,7 +256,6 @@ def cal_acc(data_list, pred_folder, classes, names):
         union_meter.update(union)
         target_meter.update(target)
         accuracy = sum(intersection_meter.val) / (sum(target_meter.val) + 1e-10)
-        logger.info('Evaluating {0}/{1} on image {2}, accuracy {3:.4f}.'.format(i + 1, len(data_list), image_name+'.png', accuracy))
         
     if cache_exists:
         evaluator.save()
@@ -290,9 +267,9 @@ def cal_acc(data_list, pred_folder, classes, names):
     mAcc = np.mean(accuracy_class)
     allAcc = sum(intersection_meter.sum) / (sum(target_meter.sum) + 1e-10)
 
-    logger.info('Eval result: mIoU/mAcc/allAcc {:.4f}/{:.4f}/{:.4f}.'.format(mIoU, mAcc, allAcc))
+    print('Eval result: mIoU/mAcc/allAcc {:.4f}/{:.4f}/{:.4f}.'.format(mIoU, mAcc, allAcc))
     for i in range(classes):
-        logger.info('Class_{} result: iou/accuracy {:.4f}/{:.4f}, name: {}.'.format(i, iou_class[i], accuracy_class[i], ''))
+        print('Class_{} result: iou/accuracy {:.4f}/{:.4f}, name: {}.'.format(i, iou_class[i], accuracy_class[i], ''))
 
 
 if __name__ == '__main__':
