@@ -237,7 +237,7 @@ def test(test_loader, data_list, model, classes, mean, std, base_size, crop_h, c
     logger.info('<<<<<<<<<<<<<<<<< End Evaluation <<<<<<<<<<<<<<<<<')
 
 
-def evalintersectionAndUnion(output, target, K, ignore_index=255, evaluator):
+def evalintersectionAndUnion(output, target, K, ignore_index=255, evaluator=None):
     # 'K' classes, output and target sizes are N or N * L or N * H * W, each value in range 0 to K - 1.
     assert (output.ndim in [1, 2, 3])
     assert output.shape == target.shape
