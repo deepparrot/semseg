@@ -113,7 +113,7 @@ def main(config_name, weights_url='https://github.com/deepparrot/semseg/releases
     test_data.data_list = test_data.data_list[index_start:index_end]
     test_loader = torch.utils.data.DataLoader(test_data, batch_size=1, shuffle=False, num_workers=args.workers, pin_memory=True)
     colors = np.loadtxt(args.colors_path).astype('uint8')
-    names = [line.rstrip('\n') for line in open(args.names_path)]
+    names = []
 
     if not args.has_prediction:
         if args.arch == 'psp':
@@ -292,7 +292,7 @@ def cal_acc(data_list, pred_folder, classes, names):
 
     logger.info('Eval result: mIoU/mAcc/allAcc {:.4f}/{:.4f}/{:.4f}.'.format(mIoU, mAcc, allAcc))
     for i in range(classes):
-        logger.info('Class_{} result: iou/accuracy {:.4f}/{:.4f}, name: {}.'.format(i, iou_class[i], accuracy_class[i], names[i]))
+        logger.info('Class_{} result: iou/accuracy {:.4f}/{:.4f}, name: {}.'.format(i, iou_class[i], accuracy_class[i], ''))
 
 
 if __name__ == '__main__':
