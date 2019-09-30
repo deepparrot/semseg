@@ -16,6 +16,10 @@ from util.util import intersectionAndUnion, AverageMeter, check_makedirs, colori
 
 cv2.ocl.setUseOpenCL(False)
 
+# Extract val2017 zip
+from torchbench.utils import extract_archive
+image_dir_zip = osp.join('./.data/vision/ade20k', 'ADEChallengeData2016.zip')
+extract_archive(from_path=image_dir_zip, to_path='./.data/vision/ade20k')
 
 def get_parser():
     parser = argparse.ArgumentParser(description='PyTorch Semantic Segmentation')
@@ -64,8 +68,8 @@ def check(args):
         raise Exception('architecture not supported yet'.format(args.arch))
 
 
-def main(config):
-    global args, logger
+def main(config, weights_url='https://github.com/deepparrot/semseg/releases/download/0.1/pspnet50-ade20k.pth', 
+        weights_name='pspnet50-ade20k.pth'):
     
     args = config.load_cfg_from_cfg_file(config)
     check(args)
@@ -86,6 +90,9 @@ def main(config):
     gray_folder = os.path.join(args.save_folder, 'gray')
     color_folder = os.path.join(args.save_folder, 'color')
 
+    print(args.data_root)
+    args.data_root = './.data/vision/ade20k'
+    
     test_transform = transform.Compose([transform.ToTensor()])
     test_data = dataset.SemData(split=args.split, data_root=args.data_root, data_list=args.test_list, transform=test_transform)
     index_start = args.index_start
@@ -111,13 +118,16 @@ def main(config):
         logger.info(model)
         model = torch.nn.DataParallel(model).cuda()
         cudnn.benchmark = True
-        if os.path.isfile(args.model_path):
-            logger.info("=> loading checkpoint '{}'".format(args.model_path))
-            checkpoint = torch.load(args.model_path)
+        
+        local_checkpoint, _ = urllib.request.urlretrieve(weights_url, weights_name)
+        
+        if os.path.isfile(local_checkpoint):
+            logger.info("=> loading checkpoint '{}'".format(local_checkpoint))
+            checkpoint = torch.load(local_checkpoint)
             model.load_state_dict(checkpoint['state_dict'], strict=False)
-            logger.info("=> loaded checkpoint '{}'".format(args.model_path))
+            logger.info("=> loaded checkpoint '{}'".format(local_checkpoint))
         else:
-            raise RuntimeError("=> no checkpoint found at '{}'".format(args.model_path))
+            raise RuntimeError("=> no checkpoint found at '{}'".format(local_checkpoint))
         test(test_loader, test_data.data_list, model, args.classes, mean, std, args.base_size, args.test_h, args.test_w, args.scales, gray_folder, color_folder, colors)
     if args.split != 'test':
         cal_acc(test_data.data_list, gray_folder, args.classes, names)
@@ -276,4 +286,4 @@ def cal_acc(data_list, pred_folder, classes, names):
 
 
 if __name__ == '__main__':
-    main()
+    main(config='config/ade20k/ade20k_pspnet50.yaml')
