@@ -64,10 +64,13 @@ def check(args):
         raise Exception('architecture not supported yet'.format(args.arch))
 
 
-def main():
+def main(config):
     global args, logger
-    args = get_parser()
+    
+    args = config.load_cfg_from_cfg_file(config)
     check(args)
+    print(args.data_root)
+    print(args.split)
     logger = get_logger()
     os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(str(x) for x in args.test_gpu)
     logger.info(args)
