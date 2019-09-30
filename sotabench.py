@@ -262,8 +262,8 @@ def cal_acc(data_list, pred_folder, classes, names):
         cache_exists = evalintersectionAndUnion(pred, target, classes, evaluator)
         
         if cache_exists:
-          break
-
+            break
+        
         intersection_meter.update(intersection)
         union_meter.update(union)
         target_meter.update(target)
