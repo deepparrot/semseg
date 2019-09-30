@@ -18,7 +18,7 @@ from util.util import intersectionAndUnion, AverageMeter, check_makedirs, colori
 from google_drive_downloader import GoogleDriveDownloader as gdd
 
 gdd.download_file_from_google_drive(file_id='1ICYyknOg9wC4FNRwrOlLublLA2vhZEVC',
-                                    dest_path='./data/vision/ade20k/validation.txt',
+                                    dest_path='./.data/vision/ade20k/validation.txt',
                                     unzip=True)
 
 cv2.ocl.setUseOpenCL(False)
