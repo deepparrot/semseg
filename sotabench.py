@@ -98,6 +98,7 @@ def main(config_name, weights_url='https://github.com/deepparrot/semseg/releases
 
     args.data_root = './.data/vision/ade20k'
     args.val_list = './.data/vision/ade20k/validation.txt'
+    args.test_list = './.data/vision/ade20k/validation.txt'
 
     print(args.data_root)
 
